@@ -1,7 +1,0 @@
-ALL FROM TOM, IN THE LEFT SIDE OF THE NETWARS BUILDING
-
-
-https://github.com/OpenRCE/sulley
-https://github.com/jfoote/exploitable
-https://penturalabs.wordpress.com/2011/03/31/vulnerability-development-buffer-overflows-how-to-bypass-full-aslr/
-https://gist.github.com/joswr1ght/a45d000ceaccf4cce6cb
