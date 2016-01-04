@@ -20,7 +20,7 @@ Part 1: Dance of the Sugar Gnome Fairies: Curious Wireless Packets
 
 After we retreived the [first packet capture](downloads/giyh-capture.pcap), we first opened it up [Wireshark] to examine the network traffic more closely. 
 
-It was easy enough to see the broadcast packets and beacon frames, and saw the two [SSID]s titled `December` and `DosisHome-Guest`. 
+It was easy enough to see the broadcast packets and beacon frames, and we saw the two [SSID]s titled `December` and `DosisHome-Guest`. 
 
 As we looked through the [pcap] more and more, we eventually found some interesting stuff in the packets sent over [DNS]. In the raw text they carried, it looked they carried some [base64] encoded data! Ha, the trailing `=` equal signs always give it away.
 
@@ -50,9 +50,9 @@ for packet in udp_packets:
 			print carved_data
 ```
 
-With the output of [our script](our_code/pcap_extract_baseline.py) it was pretty clear what was going on; we could see commands being executed and even data for a file being passed over the wire. 
+With the output of [our script](our_code/pcap_extract_baseline.py) it was easy to identify commands being executed and even data for a file being passed over the wire. 
 
-To make things a little easier on the eyes (not spewing the data for the transferred file everywhere), we actually threw [our script](our_code/pcap_extract_baseline.py) into [`strings`][strings], and got to see the real good stuff being sent across the network. 
+To make things a little easier on the eyes (not spewing the data for the transferred file everywhere), we actually threw [our script](our_code/pcap_extract_baseline.py) into [`strings`][strings], and got to see more clearly the commands being sent across the network. 
 
 ![Strings Output](screenshots/strings_output.png)
 
@@ -71,7 +71,7 @@ The commands we saw were:
 
 And to answer the second question, we already had a [working script](our_code/pcap_extract_baseline.py)... all we needed it to do was scrape out the file data in the loop and then jam it all together. So we created a file handle and added whatever we processed to it.
 
-Here's the jist of our modification, how added it in the loop:
+Here's the jist of our modification, how it added into the loop:
 
 ``` python
 if ( carved_data.startswith('FILE:') ):
@@ -103,7 +103,7 @@ Part 2: I’ll be Gnome for Christmas: Firmware Analysis for Fun and Profit
 
 ![Starting Firmware...](screenshots/start_firmware.png)
 
-When we got [the firmware](downloads/giyh-firmware-dump.bin) downloaded, we ran [`binwalk -e`][binwalk] to extract out a file system. Easy enough, we got a whole [Linux] file system in our hands.
+When we got [the firmware](downloads/giyh-firmware-dump.bin) downloaded, we ran [`binwalk -e`][binwalk] to extract out a file system. Easy enough, we had a whole [Linux] file system on our hands.
 
 ![binwalk output](screenshots/binwalk.png)
 
@@ -133,7 +133,7 @@ Between all the [`.js` ][JavaScript] [JavaScript] files and even the blatant `no
 
 __3) What operating system and CPU type are used in the Gnome?  What type of web framework is the Gnome web interface built in?__
 
-* The Gnome is running __[OpenWRT]__ with an ARM __[x64] CPU__.
+* The Gnome is running __[OpenWRT]__ with an __x86_64 CPU__.
 * The web interface is built in the __[Node.js][node.js]__ web framework.
 
 --------
@@ -209,7 +209,7 @@ ff02::2 ip6-allrouters
 
 Apparently this is [SuperGnome 01].
 
-And, since we were able to get a password out of the database, we can log in with those credentials, `admin` and `SittingOnAShelf`. Now we can poke around with the live box and see if we can interact with it in any other ways and get more information. Since we've got the source code within the [firmware](downloads/giyh-firmware-dump.bin), it should be easy everything the web server is actually doing.
+And, since we were able to get a password out of the database, we can log in with those credentials, `admin` and `SittingOnAShelf`. Now we can poke around with the live box and see if we can interact with it in any other ways and get more information. Since we've got the source code within the [firmware](downloads/giyh-firmware-dump.bin), it should be easy to see everything the web server is actually doing.
 
 But, we've got to find all the other SuperGnomes. Well, uh, how do we do that?
 
@@ -275,11 +275,11 @@ Since we had the source code of the webpages, we figured we would start by more 
 
 We opened up what seemed to be the logic for the webserver, `index.js` under the `/www/routes` directory of the [firmware](downloads/giyh-firmware-dump.bin).
 
-I'll try and enumerate what vulnerabilities we found and the progression we had followed to compromise some of the SuperGnomes. __I hope this will act as a long-winded answer to questions 7 and 8: 7) Please describe the vulnerabilities you discovered in the Gnome firmware, and 8) Describe the technique you used to gain access to each SuperGnome’s gnome.conf file.__
+I'll try and enumerate what vulnerabilities we found and the progression we had followed to compromise some of the SuperGnomes. __I hope this will act as a long-winded answer to questions seven and eight: 7) Please describe the vulnerabilities you discovered in the Gnome firmware, and 8) Describe the technique you used to gain access to each SuperGnome’s gnome.conf file.__
 
 Something we saw interesting in the source code was this "camera viewer", under `/cam` that allowed you to look at an individual camera image if you gave it an [HTTP][HTTP] [GET request] variable.
 
-In the [firmware](downloads/giyh-firmware-dump.bin)'s code  ([SuperGnome 01]'s rendition of the software), a user apparently by the name of 'Stuart' had commented out a line of code that would just check if the supplied filename variable had the text '[.png]' _in_ the filename. Under that condition, the filename wouldn't have to have [.png] as a file extension.. it just had to be somewhere in the string. The current code in [SuperGnome 01] would append on the '[.png]' string no matter what, but the comment led us to wonder... do some of the other SuperGnome's act this way?
+In the [firmware](downloads/giyh-firmware-dump.bin)'s code  ([SuperGnome 01]'s rendition of the software), a user apparently by the name of 'Stuart' had commented out a line of code that would just check if the supplied filename variable had the text '[.png]' _in_ the filename. Under that condition, the filename wouldn't have to have [.png] as a file extension.. it just had to be somewhere in the string. The current code in [SuperGnome 01] would append on the '[.png]' string no matter what, but the comment led us to wonder... do some of the other SuperGnomes act this way?
 
 ``` js
 // CAMERA VIEWER
@@ -304,7 +304,7 @@ router.get('/cam', function(req, res, next) {
 We naturally moved onto [SuperGnome 02] after [SuperGnome 01], and [SG02][SuperGnome 02] was an interesting case because we could log in with the `admin` and `SittingOnAShelf` credentials we initially discovered, but we could not download anything from the [`/files`](http://52.34.3.80/files) page. But, we still wanted that `gnome.conf` file! 
 
 So when we were [manually testing that `/cam` page](http://52.34.3.80/cam?camera=experiment.png.works?)... it did not append a '[.png]' extension if we supplied one in the string! It just checked to see if the string was in there, just like the commented code had suggested!
-
+  
 After some more tinkering with [SuperGnome 02], we saw we were able to upload our own settings file from the [`/settings`](http://52.34.3.80/settings) page. This let us create a file on the server... could we exploit that?
 
 ``` js
@@ -335,7 +335,7 @@ router.post('/settings', function(req, res, next) {
 });
 ``` 
 
-The source code tells us that this functionality will actually create a new directory for us, whatever based off the 'lastIndexOf()' a `/` forward-slash character. Well then... what is to stop us from creating a directory with the string '[.png]' in its name? If we did that, we could use that directory as a "jumping off-point" in the [`/cam`](52.34.3.80/cam) page and see if we could get any other files, _not just camera images!_
+The source code tells us that this functionality will actually create a new directory for us, based off the 'lastIndexOf()' a `/` forward-slash character. Well then... what is to stop us from creating a directory with the string '[.png]' in its name? If we did that, we could use that directory as a "jumping off-point" in the [`/cam`](52.34.3.80/cam) page and see if we could get any other files, _not just camera images!_
 
 When we tried this, we weren't able to actually upload the file (just like it is explained in the source code comments)... but we still created our directory!
 
@@ -347,7 +347,7 @@ So in combination with that directory we were able to create through the [`/sett
 
 Now, we could grab some more interesting stuff from the webserver. Source code, the files in [`/files`](http://52.34.3.80/files) we were previously unable to snag (including our goal `gnome.conf`), and any other logs or info we wanted. 
 
-Just like Josh Wright hinted at in-game, we were able to combine that file upload feature to get that [LFI] attack. So, with everything pillage that we could, we could consider [SuperGnome 02] compromised!
+Just like Josh Wright hinted at in-game, we were able to combine that file upload feature to get that [LFI] attack. So, after pillaging everything we could, we could consider [SuperGnome 02] compromised!
 
 ![Local File Inclusion/Upload](screenshots/lfi_upload.png)
 
@@ -367,7 +367,7 @@ But, [SuperGnome 03] seemed out of reach so far. Our `admin` and `SittingOnAShel
 
 [SuperGnome 04] is another case where we can log in with `admin` (couldn't with `stuart`), but cannot download any of the files (including `gnome.conf`) from [`/files`](http://52.192.152.132/files).
 
-But it looks like we could actually upload a file to that [`/files`](http://52.192.152.132/files) page, which differs from [SuperGnome 01] and [02][SuperGnome 02]. We took a look at the source code from the [firmware](downloads/giyh-firmware-dump.bin), and it looks that functionality works like this:
+But it looks like we could actually upload a file to that [`/files`](http://52.192.152.132/files) page, which differs from [SuperGnome 01] and [02][SuperGnome 02]. We took a look at the source code from the [firmware](downloads/giyh-firmware-dump.bin), and it looks like the functionality works like this:
 
 ``` js
 // FILES UPLOAD
@@ -422,7 +422,7 @@ We got a response of a [JavaScript] object, so it seemed like it worked. But... 
 
 We weren't able to get a [`netcat`][netcat] listener, or a backdoor; we tried -- a lot. But we couldn't just let this go; if we had remote code execution of [SuperGnome 04], we had another box down. So we tried something crafty to really see if our commands were running.
 
-What we did is we ran a [`curl`][curl] command to have the [SuperGnome][SuperGnome 04] post its command output to something like an online clipboard; where you could juste throw up data and retrieve it later. We used [`cl1p.net`][cl1p.net]. From there, if the command successfully ran, we could view the output and analyze our results. 
+What we did is we ran a [`curl`][curl] command to have the [SuperGnome][SuperGnome 04] post its command output to something like an online clipboard; where you could just thow up data and retrieve it later. We used [`cl1p.net`][cl1p.net]. From there, if the command successfully ran, we could view the output and analyze our results. 
 
 It was messy; really messy; but it worked. We actually ended up [scripting something](our_code/sg04_shell.sh) so that we would run a [`curl`][curl] command on our own and pull the results from [`cl1p.net`][cl1p.net] -- it was like a simulated [shell]. Granted, we only had output -- it was not a very stable [shell] or terminal where we could supply more input with other interactive commands -- but it was still something.
 
@@ -467,7 +467,7 @@ It looks as though the nefarious plot of the ATNAS corporation is to use these "
 
 __10) Who is the villain behind the nefarious plot?__
 
-__The evil mastermind behind this entire operation is none other than the Miss Cindy Lou Who!__
+The evil mastermind behind this entire operation is none other than the __Miss Cindy Lou Who!__
 
 --------
 
